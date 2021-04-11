@@ -13,7 +13,8 @@ const userSchema = new mongoose.Schema({
     user_type:{type:String,default:"normal"},
     createdat:{type:String,default:nodate.toDateString()},
     active:{type:String,default:"no"},
-    loggedIn:{type:String,default:"no"}
+    loggedIn:{type:String,default:"no"},
+    loggedInTime:{type:String,default:"none"}
 
 });
 

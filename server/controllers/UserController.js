@@ -57,6 +57,22 @@ module.exports = function(app) {
     }    
 };
 
+
+function whoIsloggedIn(req,res){
+   if(req.session.isLoggedIn===true && req.session.user.loggedInTime!=="none"){
+       User.findOne({email:req.session.user.email}).exec((err,doc)=>{
+           if(err){
+            return res.send(err);
+           }else{
+            return res.send(doc.loggedInTime);
+           }
+       });  
+   }else{
+    return res.send("none");
+   }
+};
+
+
 function logoff(req,res,next){
     let mail=req.session.user.email;
     User.findOne({email:mail}).exec((err,doc)=>{
@@ -65,6 +81,7 @@ function logoff(req,res,next){
         }else{
             if(doc!==null){
                 doc.loggedIn="no";
+                doc.loggedInTime="none";
                 doc.save();   
             }
         }
@@ -157,9 +174,15 @@ const showCourses =(req,res)=>{
                 return res.send({success:false,message:"Sorry,account is not active!!!"});
              }
              if(!(user.loggedIn==="no")){
-                return res.send({success:false,message:"Sorry,user is already loggedin elsewhere!!!"});
+                user.loggedIn ="no";
+                user.loggedInTime="none";
+                user.save();
+                req.session.user=null;
+                req.session.isLoggedIn=false;
+                return res.send({success:false,islg:true,message:"You are logged out from your last log in.Pls log in again!!!"});
              }
              user.loggedIn ="yes";
+             user.loggedInTime=req.body.logfrom;
              user.save().then(thisuser=>{
                 req.session.user=thisuser;
                 req.session.isLoggedIn=true;
@@ -218,7 +241,6 @@ const showCourses =(req,res)=>{
                 if(err){
                     res.send(err);
                 }else{
-                    
                     if(doc===null){
                     let newone = new QuizHistory();
                     newone.user=req.session.user._id;
@@ -227,6 +249,7 @@ const showCourses =(req,res)=>{
                         if(one!==null){
                            return res.send({success:true,message:"Score saved"});
                         }
+                        
                         
                     }).catch(err=>{
                         res.send(err);
@@ -257,7 +280,7 @@ const showCourses =(req,res)=>{
 
        function showScores(req,res){
         if(req.session.user){
-               QuizHistory.findOne({user:req.session.user._id}).
+               QuizHistory.findOne({user:req.body.user}).
                exec((err,doc)=>{
                    if (err) {
                        res.send(err);                       
@@ -506,7 +529,7 @@ const showCourses =(req,res)=>{
 
      app.get('/api/user/isloggedIn',isloggedin);
      
-     app.get('/api/user/checklogged',islogged);
+     app.get('/api/user/checkwhologged',whoIsloggedIn);
 
    app.get('/api/user/getcourses',isloggedin,showCourses);
 
