@@ -595,10 +595,12 @@ const changePassword =(req,res)=>{
     }
 
     const activateUser = (req,res)=>{
+        //console.log(req.body.email);
         if(req.session.user && req.session.user.user_type==="admin"){
            User.findOne({email:req.body.email}).
            then(this_user=>{
                if (this_user!==null) {
+                //console.log(this_user);
                 Payments.findOne({_user:this_user._id}).
                 then(pay=>{
                     if (pay!==null) {
@@ -610,11 +612,13 @@ const changePassword =(req,res)=>{
                                   }
                             }).catch(errr=>{
                                 console.log(errr);
-                                res.send(err);
+                                return res.send(err);
                             });
                         } else {
-                            res.send({success:false,message:"Sorry,subscription for user is expired or user is yet to subscribe."});
+                            return res.send({success:false,message:"Sorry,subscription for user is expired or user is yet to subscribe."});
                         }
+                    }else{
+                        return res.send({success:false,message:"Sorry,no payments record for user"});
                     }
                 }).catch(er=>{
                     //console.log(er);
@@ -653,6 +657,8 @@ const changePassword =(req,res)=>{
                         } else {
                            return res.send({success:false,message:"Sorry,subscription for user is expired or user is yet to subscribe."});
                         }
+                    }else{
+                        return res.send({success:false,message:"Sorry,no payments history for user"});
                     }
                 }).catch(er=>{
                     //console.log(er);
@@ -844,6 +850,7 @@ const changePassword =(req,res)=>{
         
     };
 
+    
     const addQfile=(req,res)=>{
         if(req.session.user && req.session.user.user_type==="admin"){
             let {type,course}=req.body;
@@ -928,7 +935,10 @@ const changePassword =(req,res)=>{
     }
 
 
-   
+    ///app.post('/api/admin/activates',isloggedin,do_activation);
+
+    //app.post('/api/admin/deactivates',isloggedin,de_activation);
+
     app.post('/api/admin/addmaterial',isloggedin,addMaterail);
 
     app.post('/api/admin/adminactivates',isloggedin,activateDeactivateAdmin);
